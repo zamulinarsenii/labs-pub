@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: music_store
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: lab
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["music_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d music_store"]
+      interval: 3s
+      retries: 20
+  web:
+    image: tomcat:10.1-jdk21-temurin
+    ports: ["127.0.0.1:8080:8080"]
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/music_store
+      DB_USER: lab
+      DB_PASSWORD: lab
+    volumes: ["./lab08/target/music-store.war:/usr/local/tomcat/webapps/music-store.war:ro"]
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  music_data:
